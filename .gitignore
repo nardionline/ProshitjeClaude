@@ -1,0 +1,13 @@
+bin/
+obj/
+publish/
+.vs/
+*.user
+*.suo
+
+# Mos ngarko kurrë databazën ose të dhëna reale
+*.mdb
+*.accdb
+*.ldb
+*.laccdb
+fatura.txt

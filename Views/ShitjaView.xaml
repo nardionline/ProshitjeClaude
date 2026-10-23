@@ -1,0 +1,97 @@
+<UserControl x:Class="MarketPrenga.Views.ShitjaView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <UserControl.InputBindings>
+        <KeyBinding Key="F5" Command="{Binding PrintFiscalCommand}"/>
+        <KeyBinding Key="F6" Command="{Binding SaveOnlyCommand}"/>
+        <KeyBinding Key="Escape" Command="{Binding ClearCommand}"/>
+    </UserControl.InputBindings>
+
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="340"/>
+        </Grid.ColumnDefinitions>
+
+        <!-- Majtas: barkodi + shporta -->
+        <DockPanel Margin="0,0,12,0">
+            <StackPanel DockPanel.Dock="Top">
+                <TextBlock Text="Barkodi (Enter)" Style="{StaticResource FieldLabel}"/>
+                <TextBox x:Name="BarcodeBox" FontSize="22" Padding="8"
+                         Text="{Binding BarcodeInput, UpdateSourceTrigger=PropertyChanged}">
+                    <TextBox.InputBindings>
+                        <KeyBinding Key="Return" Command="{Binding ScanCommand}"/>
+                    </TextBox.InputBindings>
+                </TextBox>
+            </StackPanel>
+
+            <TextBlock DockPanel.Dock="Bottom" Text="{Binding Status}" Foreground="#555" Margin="0,8,0,0"/>
+
+            <DataGrid ItemsSource="{Binding Lines}" SelectedItem="{Binding SelectedLine}">
+                <DataGrid.InputBindings>
+                    <KeyBinding Key="Delete" Command="{Binding RemoveLineCommand}"/>
+                </DataGrid.InputBindings>
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Artikulli" Binding="{Binding Emri}" Width="*" IsReadOnly="True"/>
+                    <DataGridTextColumn Header="Sasia" Binding="{Binding Qty, StringFormat=0.###}" Width="90"/>
+                    <DataGridTextColumn Header="Çmimi" Binding="{Binding Price, StringFormat=N2}" Width="100" IsReadOnly="True"/>
+                    <DataGridTextColumn Header="Totali" Binding="{Binding Total, StringFormat=N2}" Width="110" IsReadOnly="True"/>
+                </DataGrid.Columns>
+            </DataGrid>
+        </DockPanel>
+
+        <!-- Djathtas: klienti, totali, butonat -->
+        <ScrollViewer Grid.Column="1" VerticalScrollBarVisibility="Auto">
+            <StackPanel>
+                <TextBlock Text="Klienti" Style="{StaticResource FieldLabel}"/>
+                <ComboBox ItemsSource="{Binding Klientet}" DisplayMemberPath="Emri"
+                          SelectedItem="{Binding SelectedKlient}"/>
+
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Margin="0,0,4,0">
+                        <TextBlock Text="Çmimi" Style="{StaticResource FieldLabel}"/>
+                        <ComboBox ItemsSource="{Binding Rishitesit}" SelectedItem="{Binding SelectedRishites}"/>
+                    </StackPanel>
+                    <StackPanel Grid.Column="1" Margin="4,0,0,0">
+                        <TextBlock Text="Skonto %" Style="{StaticResource FieldLabel}"/>
+                        <TextBox Text="{Binding Skonto}"/>
+                    </StackPanel>
+                </Grid>
+
+                <Border Background="#F2F5FA" CornerRadius="6" Padding="14" Margin="0,4,0,10">
+                    <StackPanel>
+                        <TextBlock Text="TOTALI" Style="{StaticResource FieldLabel}"/>
+                        <TextBlock Text="{Binding Total, StringFormat=N2}" FontSize="40" FontWeight="Bold"/>
+                        <TextBlock Text="{Binding LineCount, StringFormat='{}{0} rreshta'}" Foreground="#777"/>
+                    </StackPanel>
+                </Border>
+
+                <TextBlock Text="Paguar (bosh = totali)" Style="{StaticResource FieldLabel}"/>
+                <TextBox Text="{Binding PaguarText, UpdateSourceTrigger=PropertyChanged}" FontSize="18"/>
+
+                <Button Content="Printo në kasë fiskale  (F5)" Command="{Binding PrintFiscalCommand}"
+                        Background="#2E7D32" Foreground="White" FontWeight="Bold"/>
+                <Button Content="Ruaj pa printuar  (F6)" Command="{Binding SaveOnlyCommand}"/>
+                <Button Content="Fshi rreshtin  (Del)" Command="{Binding RemoveLineCommand}"/>
+                <Button Content="Pastro  (Esc)" Command="{Binding ClearCommand}"/>
+
+                <TextBlock Text="Kërko artikull (pa barkod)" Style="{StaticResource FieldLabel}" Margin="0,14,0,0"/>
+                <TextBox Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"/>
+                <DataGrid ItemsSource="{Binding SearchResults}" SelectedItem="{Binding SelectedSearch}"
+                          Height="200" IsReadOnly="True">
+                    <DataGrid.InputBindings>
+                        <MouseBinding Gesture="LeftDoubleClick" Command="{Binding AddSearchedCommand}"/>
+                    </DataGrid.InputBindings>
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Artikulli" Binding="{Binding Emri}" Width="*"/>
+                        <DataGridTextColumn Header="Çmimi" Binding="{Binding CmimiDaljes, StringFormat=N2}" Width="70"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</UserControl>

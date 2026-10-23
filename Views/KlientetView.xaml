@@ -1,0 +1,57 @@
+<UserControl x:Class="MarketPrenga.Views.KlientetView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="360"/>
+        </Grid.ColumnDefinitions>
+
+        <DockPanel Margin="0,0,12,0">
+            <StackPanel DockPanel.Dock="Top">
+                <TextBlock Text="Kërko (emër, telefon, kod)" Style="{StaticResource FieldLabel}"/>
+                <TextBox Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"/>
+            </StackPanel>
+            <TextBlock DockPanel.Dock="Bottom" Text="{Binding Status}" Foreground="#555" Margin="0,6,0,0"/>
+            <DataGrid ItemsSource="{Binding Items}" SelectedItem="{Binding Selected}" IsReadOnly="True">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Emri" Binding="{Binding Emri}" Width="*"/>
+                    <DataGridTextColumn Header="Telefon" Binding="{Binding Cel}" Width="120"/>
+                    <DataGridTextColumn Header="Borxhi" Binding="{Binding Debi, StringFormat=N2}" Width="100"/>
+                </DataGrid.Columns>
+            </DataGrid>
+        </DockPanel>
+
+        <ScrollViewer Grid.Column="1" VerticalScrollBarVisibility="Auto">
+            <StackPanel>
+                <StackPanel Orientation="Horizontal">
+                    <Button Content="Klient i ri" Command="{Binding NewCommand}"/>
+                    <Button Content="Ruaj" Command="{Binding SaveCommand}" FontWeight="Bold"/>
+                    <Button Content="Fshi" Command="{Binding DeleteCommand}"/>
+                </StackPanel>
+
+                <StackPanel DataContext="{Binding Selected}">
+                    <TextBlock Text="Emri dhe mbiemri" Style="{StaticResource FieldLabel}"/>
+                    <TextBox Text="{Binding Emri}"/>
+                    <TextBlock Text="Telefon" Style="{StaticResource FieldLabel}"/>
+                    <TextBox Text="{Binding Tel}"/>
+                    <TextBlock Text="Celular" Style="{StaticResource FieldLabel}"/>
+                    <TextBox Text="{Binding Cel}"/>
+                    <TextBlock Text="Email" Style="{StaticResource FieldLabel}"/>
+                    <TextBox Text="{Binding Email}"/>
+                    <TextBlock Text="Adresa" Style="{StaticResource FieldLabel}"/>
+                    <TextBox Text="{Binding Adresa}"/>
+                    <TextBlock Text="Kodi" Style="{StaticResource FieldLabel}"/>
+                    <TextBox Text="{Binding Kod}"/>
+                    <TextBlock Text="Shkalla e çmimit" Style="{StaticResource FieldLabel}"/>
+                    <ComboBox ItemsSource="{Binding DataContext.Rishitesit, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                              SelectedItem="{Binding Rishites}"/>
+                    <TextBlock Text="Borxhi" Style="{StaticResource FieldLabel}"/>
+                    <TextBox Text="{Binding Debi}"/>
+                    <TextBlock Text="Pikët e grumbulluara" Style="{StaticResource FieldLabel}"/>
+                    <TextBox Text="{Binding Pike}"/>
+                </StackPanel>
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</UserControl>
