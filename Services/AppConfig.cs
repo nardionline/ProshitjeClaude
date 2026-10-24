@@ -10,6 +10,7 @@ public sealed class AppConfig
     public string AedOutputFile { get; set; } = @"C:\Proshitje Market 1.4\output\fatura.txt";
     public string AedEncoding { get; set; } = "windows-1252";
     public string DecimalSeparator { get; set; } = ".";
+    public decimal LowStockThreshold { get; set; } = 5;
 
     public static AppConfig Current { get; private set; } = new();
 

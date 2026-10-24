@@ -1,0 +1,100 @@
+<UserControl x:Class="MarketPrenga.Views.DashboardView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel>
+            <TextBlock Text="{Binding Greeting}" Style="{StaticResource H1}"/>
+            <TextBlock Text="{Binding Today}" Foreground="{StaticResource MutedBrush}" Margin="0,2,0,18"/>
+            <TextBlock Text="{Binding Error}" Foreground="{StaticResource DangerBrush}" TextWrapping="Wrap"/>
+
+            <UniformGrid Columns="4" Margin="0,0,0,16">
+                <Border Style="{StaticResource Card}" Margin="0,0,10,0">
+                    <StackPanel>
+                        <TextBlock Text="Shitjet sot" Style="{StaticResource FieldLabel}"/>
+                        <TextBlock Text="{Binding TodayTotal, StringFormat=N2}" Style="{StaticResource BigNumber}"
+                                   Foreground="{StaticResource AccentBrush}"/>
+                        <TextBlock Text="{Binding TodayCount, StringFormat='{}{0} fatura'}" Foreground="{StaticResource MutedBrush}"/>
+                    </StackPanel>
+                </Border>
+                <Border Style="{StaticResource Card}" Margin="5,0">
+                    <StackPanel>
+                        <TextBlock Text="Shitjet këtë muaj" Style="{StaticResource FieldLabel}"/>
+                        <TextBlock Text="{Binding MonthTotal, StringFormat=N2}" Style="{StaticResource BigNumber}"/>
+                    </StackPanel>
+                </Border>
+                <Border Style="{StaticResource Card}" Margin="5,0">
+                    <StackPanel>
+                        <TextBlock Text="Borxhet e klientëve" Style="{StaticResource FieldLabel}"/>
+                        <TextBlock Text="{Binding DebtTotal, StringFormat=N2}" Style="{StaticResource BigNumber}"
+                                   Foreground="{StaticResource WarnBrush}"/>
+                    </StackPanel>
+                </Border>
+                <Border Style="{StaticResource Card}" Margin="10,0,0,0">
+                    <StackPanel>
+                        <TextBlock Text="Artikuj me stok të ulët" Style="{StaticResource FieldLabel}"/>
+                        <TextBlock Text="{Binding LowStockCount}" Style="{StaticResource BigNumber}"
+                                   Foreground="{StaticResource DangerBrush}"/>
+                    </StackPanel>
+                </Border>
+            </UniformGrid>
+
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="1.3*"/>
+                    <ColumnDefinition Width="16"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <StackPanel>
+                    <Border Style="{StaticResource Card}">
+                        <StackPanel>
+                            <TextBlock Text="Shitjet 7 ditët e fundit" FontWeight="SemiBold" FontSize="16" Margin="0,0,0,12"/>
+                            <ItemsControl ItemsSource="{Binding Bars}" MinHeight="210">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate><StackPanel Orientation="Horizontal" VerticalAlignment="Bottom"/></ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Width="78" VerticalAlignment="Bottom">
+                                            <TextBlock Text="{Binding Value, StringFormat=N0}" FontSize="12" FontWeight="SemiBold"
+                                                       HorizontalAlignment="Center"/>
+                                            <Border Height="{Binding BarHeight}" Width="38" Margin="0,4"
+                                                    Background="{StaticResource AccentBrush}" CornerRadius="6,6,2,2"/>
+                                            <TextBlock Text="{Binding Label}" FontSize="11" HorizontalAlignment="Center"
+                                                       Foreground="{StaticResource MutedBrush}"/>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Style="{StaticResource Card}" Margin="0,16,0,0">
+                        <StackPanel>
+                            <TextBlock Text="Më të shiturat sot" FontWeight="SemiBold" FontSize="16" Margin="0,0,0,8"/>
+                            <DataGrid ItemsSource="{Binding TopToday}" IsReadOnly="True" MaxHeight="300">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="Artikulli" Binding="{Binding Name}" Width="*"/>
+                                    <DataGridTextColumn Header="Sasia" Binding="{Binding Qty, StringFormat=0.###}" Width="90"/>
+                                    <DataGridTextColumn Header="Totali" Binding="{Binding Total, StringFormat=N2}" Width="110"/>
+                                </DataGrid.Columns>
+                            </DataGrid>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+
+                <Border Grid.Column="2" Style="{StaticResource Card}" VerticalAlignment="Top">
+                    <StackPanel>
+                        <TextBlock Text="⚠ Stok i ulët" FontWeight="SemiBold" FontSize="16" Margin="0,0,0,8" FontFamily="Segoe UI Emoji"/>
+                        <DataGrid ItemsSource="{Binding LowStock}" IsReadOnly="True" MaxHeight="520">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Artikulli" Binding="{Binding Name}" Width="*"/>
+                                <DataGridTextColumn Header="Stoku" Binding="{Binding Stock, StringFormat=0.###}" Width="80"/>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </StackPanel>
+                </Border>
+            </Grid>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

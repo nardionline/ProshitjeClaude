@@ -4,94 +4,193 @@
     <UserControl.InputBindings>
         <KeyBinding Key="F5" Command="{Binding PrintFiscalCommand}"/>
         <KeyBinding Key="F6" Command="{Binding SaveOnlyCommand}"/>
+        <KeyBinding Key="F7" Command="{Binding HoldCommand}"/>
+        <KeyBinding Key="F8" Command="{Binding RecallCommand}"/>
         <KeyBinding Key="Escape" Command="{Binding ClearCommand}"/>
     </UserControl.InputBindings>
 
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*"/>
-            <ColumnDefinition Width="340"/>
+            <ColumnDefinition Width="450"/>
         </Grid.ColumnDefinitions>
 
-        <!-- Majtas: barkodi + shporta -->
-        <DockPanel Margin="0,0,12,0">
-            <StackPanel DockPanel.Dock="Top">
-                <TextBlock Text="Barkodi (Enter)" Style="{StaticResource FieldLabel}"/>
-                <TextBox x:Name="BarcodeBox" FontSize="22" Padding="8"
-                         Text="{Binding BarcodeInput, UpdateSourceTrigger=PropertyChanged}">
-                    <TextBox.InputBindings>
-                        <KeyBinding Key="Return" Command="{Binding ScanCommand}"/>
-                    </TextBox.InputBindings>
-                </TextBox>
-            </StackPanel>
+        <!-- ================= MAJTAS: skanim + kategori + pllaka ================= -->
+        <Grid Margin="0,0,16,0">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
 
-            <TextBlock DockPanel.Dock="Bottom" Text="{Binding Status}" Foreground="#555" Margin="0,8,0,0"/>
+            <Grid Grid.Row="0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="1.3*"/>
+                    <ColumnDefinition Width="12"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <StackPanel>
+                    <TextBlock Text="📷  Barkodi  (Enter)" Style="{StaticResource FieldLabel}" FontFamily="Segoe UI Emoji"/>
+                    <TextBox x:Name="BarcodeBox" FontSize="22" Padding="12,10"
+                             Text="{Binding BarcodeInput, UpdateSourceTrigger=PropertyChanged}">
+                        <TextBox.InputBindings>
+                            <KeyBinding Key="Return" Command="{Binding ScanCommand}"/>
+                        </TextBox.InputBindings>
+                    </TextBox>
+                </StackPanel>
+                <StackPanel Grid.Column="2">
+                    <TextBlock Text="🔍  Kërko artikull" Style="{StaticResource FieldLabel}" FontFamily="Segoe UI Emoji"/>
+                    <TextBox FontSize="22" Padding="12,10"
+                             Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"/>
+                </StackPanel>
+            </Grid>
 
-            <DataGrid ItemsSource="{Binding Lines}" SelectedItem="{Binding SelectedLine}">
-                <DataGrid.InputBindings>
-                    <KeyBinding Key="Delete" Command="{Binding RemoveLineCommand}"/>
-                </DataGrid.InputBindings>
-                <DataGrid.Columns>
-                    <DataGridTextColumn Header="Artikulli" Binding="{Binding Emri}" Width="*" IsReadOnly="True"/>
-                    <DataGridTextColumn Header="Sasia" Binding="{Binding Qty, StringFormat=0.###}" Width="90"/>
-                    <DataGridTextColumn Header="Çmimi" Binding="{Binding Price, StringFormat=N2}" Width="100" IsReadOnly="True"/>
-                    <DataGridTextColumn Header="Totali" Binding="{Binding Total, StringFormat=N2}" Width="110" IsReadOnly="True"/>
-                </DataGrid.Columns>
-            </DataGrid>
-        </DockPanel>
+            <ListBox Grid.Row="1" ItemsSource="{Binding Kategorite}" SelectedItem="{Binding SelectedKategori}"
+                     ItemContainerStyle="{StaticResource ChipItem}" Background="Transparent" BorderThickness="0"
+                     MaxHeight="96" Margin="0,4,0,0"
+                     ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                     ScrollViewer.VerticalScrollBarVisibility="Auto">
+                <ListBox.ItemsPanel>
+                    <ItemsPanelTemplate><WrapPanel/></ItemsPanelTemplate>
+                </ListBox.ItemsPanel>
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding Emri}" FontSize="14"/>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
 
-        <!-- Djathtas: klienti, totali, butonat -->
-        <ScrollViewer Grid.Column="1" VerticalScrollBarVisibility="Auto">
-            <StackPanel>
-                <TextBlock Text="Klienti" Style="{StaticResource FieldLabel}"/>
-                <ComboBox ItemsSource="{Binding Klientet}" DisplayMemberPath="Emri"
-                          SelectedItem="{Binding SelectedKlient}"/>
+            <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto" Margin="0,6,0,0">
+                <ItemsControl ItemsSource="{Binding Tiles}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate><WrapPanel/></ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Button Style="{StaticResource TileButton}"
+                                    Command="{Binding DataContext.AddTileCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                    CommandParameter="{Binding}">
+                                <DockPanel>
+                                    <TextBlock DockPanel.Dock="Bottom" Text="{Binding CmimiDaljes, StringFormat=N2}"
+                                               FontSize="17" FontWeight="Bold" Foreground="{StaticResource AccentBrush}"/>
+                                    <TextBlock Text="{Binding Emri}" TextWrapping="Wrap" TextTrimming="CharacterEllipsis"
+                                               FontWeight="SemiBold" FontSize="14" MaxHeight="42"/>
+                                </DockPanel>
+                            </Button>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
 
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="*"/>
-                    </Grid.ColumnDefinitions>
-                    <StackPanel Margin="0,0,4,0">
-                        <TextBlock Text="Çmimi" Style="{StaticResource FieldLabel}"/>
-                        <ComboBox ItemsSource="{Binding Rishitesit}" SelectedItem="{Binding SelectedRishites}"/>
-                    </StackPanel>
-                    <StackPanel Grid.Column="1" Margin="4,0,0,0">
-                        <TextBlock Text="Skonto %" Style="{StaticResource FieldLabel}"/>
-                        <TextBox Text="{Binding Skonto}"/>
-                    </StackPanel>
-                </Grid>
+            <TextBlock Grid.Row="3" Text="{Binding Status}" Foreground="{StaticResource MutedBrush}" Margin="2,8,0,0"/>
+        </Grid>
 
-                <Border Background="#F2F5FA" CornerRadius="6" Padding="14" Margin="0,4,0,10">
-                    <StackPanel>
-                        <TextBlock Text="TOTALI" Style="{StaticResource FieldLabel}"/>
-                        <TextBlock Text="{Binding Total, StringFormat=N2}" FontSize="40" FontWeight="Bold"/>
-                        <TextBlock Text="{Binding LineCount, StringFormat='{}{0} rreshta'}" Foreground="#777"/>
-                    </StackPanel>
-                </Border>
+        <!-- ================= DJATHTAS: shporta + pagesa ================= -->
+        <Border Grid.Column="1" Style="{StaticResource Card}">
+            <DockPanel>
+                <!-- klienti -->
+                <StackPanel DockPanel.Dock="Top">
+                    <ComboBox ItemsSource="{Binding Klientet}" DisplayMemberPath="Emri" SelectedItem="{Binding SelectedKlient}"/>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="8"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel>
+                            <TextBlock Text="Çmimi" Style="{StaticResource FieldLabel}"/>
+                            <ComboBox ItemsSource="{Binding Rishitesit}" SelectedItem="{Binding SelectedRishites}"/>
+                        </StackPanel>
+                        <StackPanel Grid.Column="2">
+                            <TextBlock Text="Skonto %" Style="{StaticResource FieldLabel}"/>
+                            <TextBox Text="{Binding Skonto}"/>
+                        </StackPanel>
+                    </Grid>
+                </StackPanel>
 
-                <TextBlock Text="Paguar (bosh = totali)" Style="{StaticResource FieldLabel}"/>
-                <TextBox Text="{Binding PaguarText, UpdateSourceTrigger=PropertyChanged}" FontSize="18"/>
+                <!-- pagesa -->
+                <StackPanel DockPanel.Dock="Bottom">
+                    <Border Background="{StaticResource AccentSoftBrush}" CornerRadius="10" Padding="16,10" Margin="0,6,0,10">
+                        <StackPanel>
+                            <TextBlock Text="TOTALI" Style="{StaticResource FieldLabel}"/>
+                            <TextBlock Text="{Binding Total, StringFormat=N2}" FontSize="42" FontWeight="Bold"
+                                       Foreground="{StaticResource AccentBrush}"/>
+                        </StackPanel>
+                    </Border>
 
-                <Button Content="Printo në kasë fiskale  (F5)" Command="{Binding PrintFiscalCommand}"
-                        Background="#2E7D32" Foreground="White" FontWeight="Bold"/>
-                <Button Content="Ruaj pa printuar  (F6)" Command="{Binding SaveOnlyCommand}"/>
-                <Button Content="Fshi rreshtin  (Del)" Command="{Binding RemoveLineCommand}"/>
-                <Button Content="Pastro  (Esc)" Command="{Binding ClearCommand}"/>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel>
+                            <TextBlock Text="Paguar (bosh = totali)" Style="{StaticResource FieldLabel}"/>
+                            <TextBox Text="{Binding PaguarText, UpdateSourceTrigger=PropertyChanged}" FontSize="20"/>
+                        </StackPanel>
+                        <TextBlock Grid.Column="1" Text="{Binding KusuriText}" FontSize="18" FontWeight="Bold"
+                                   Foreground="{StaticResource WarnBrush}" VerticalAlignment="Center" Margin="12,8,0,0"/>
+                    </Grid>
 
-                <TextBlock Text="Kërko artikull (pa barkod)" Style="{StaticResource FieldLabel}" Margin="0,14,0,0"/>
-                <TextBox Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"/>
-                <DataGrid ItemsSource="{Binding SearchResults}" SelectedItem="{Binding SelectedSearch}"
-                          Height="200" IsReadOnly="True">
-                    <DataGrid.InputBindings>
-                        <MouseBinding Gesture="LeftDoubleClick" Command="{Binding AddSearchedCommand}"/>
-                    </DataGrid.InputBindings>
-                    <DataGrid.Columns>
-                        <DataGridTextColumn Header="Artikulli" Binding="{Binding Emri}" Width="*"/>
-                        <DataGridTextColumn Header="Çmimi" Binding="{Binding CmimiDaljes, StringFormat=N2}" Width="70"/>
-                    </DataGrid.Columns>
-                </DataGrid>
-            </StackPanel>
-        </ScrollViewer>
+                    <UniformGrid Columns="5" Margin="0,0,0,6">
+                        <Button Content="Saktë" Command="{Binding QuickPayCommand}" CommandParameter="exact" Margin="0,0,4,0" Padding="4,8"/>
+                        <Button Content="500" Command="{Binding QuickPayCommand}" CommandParameter="500" Margin="2,0" Padding="4,8"/>
+                        <Button Content="1000" Command="{Binding QuickPayCommand}" CommandParameter="1000" Margin="2,0" Padding="4,8"/>
+                        <Button Content="2000" Command="{Binding QuickPayCommand}" CommandParameter="2000" Margin="2,0" Padding="4,8"/>
+                        <Button Content="5000" Command="{Binding QuickPayCommand}" CommandParameter="5000" Margin="4,0,0,0" Padding="4,8"/>
+                    </UniformGrid>
+
+                    <Button Content="🖨  Pagesë + Kasa fiskale   (F5)" Command="{Binding PrintFiscalCommand}"
+                            Style="{StaticResource SuccessButton}"/>
+                    <UniformGrid Columns="3">
+                        <Button Content="💾 Ruaj (F6)" Command="{Binding SaveOnlyCommand}"/>
+                        <Button Content="⏸ Pritje (F7)" Command="{Binding HoldCommand}"/>
+                        <Button Command="{Binding RecallCommand}" Content="{Binding HeldCount}" ContentStringFormat="▶ Rikthe ({0})"/>
+                    </UniformGrid>
+                    <Button Content="Pastro shportën (Esc)" Command="{Binding ClearCommand}" Style="{StaticResource DangerButton}"/>
+                </StackPanel>
+
+                <!-- shporta -->
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <ItemsControl ItemsSource="{Binding Lines}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border BorderBrush="{StaticResource LineBrush}" BorderThickness="0,0,0,1" Padding="0,8">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="82"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding Emri}" FontWeight="SemiBold" TextWrapping="Wrap"/>
+                                            <TextBlock Text="{Binding Price, StringFormat='{}{0:N2} për njësi'}"
+                                                       FontSize="12" Foreground="{StaticResource MutedBrush}"/>
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Margin="6,0">
+                                            <Button Content="−" Style="{StaticResource IconButton}"
+                                                    Command="{Binding DataContext.DecCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                    CommandParameter="{Binding}"/>
+                                            <TextBox Text="{Binding Qty, StringFormat=0.###}" Width="56" TextAlignment="Center"
+                                                     FontWeight="Bold" Margin="2,0" Padding="2,7"/>
+                                            <Button Content="+" Style="{StaticResource IconButton}"
+                                                    Command="{Binding DataContext.IncCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                    CommandParameter="{Binding}"/>
+                                        </StackPanel>
+                                        <TextBlock Grid.Column="2" Text="{Binding Total, StringFormat=N2}" FontWeight="Bold"
+                                                   TextAlignment="Right" VerticalAlignment="Center"/>
+                                        <Button Grid.Column="3" Content="✕" Style="{StaticResource IconButton}" Width="30" Height="30"
+                                                Foreground="{StaticResource DangerBrush}" BorderThickness="0" Background="Transparent"
+                                                Command="{Binding DataContext.RemoveLineCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                CommandParameter="{Binding}"/>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+            </DockPanel>
+        </Border>
     </Grid>
 </UserControl>

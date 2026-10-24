@@ -1,0 +1,48 @@
+<UserControl x:Class="MarketPrenga.Views.FaturatView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <DockPanel>
+        <TextBlock DockPanel.Dock="Top" Text="Faturat" Style="{StaticResource H1}" Margin="0,0,0,12"/>
+
+        <Border DockPanel.Dock="Top" Style="{StaticResource Card}" Margin="0,0,0,12" Padding="14,10">
+            <DockPanel>
+                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                    <Button Content="Anulo faturën" Command="{Binding CancelCommand}" Style="{StaticResource DangerButton}"/>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal">
+                    <StackPanel Margin="0,0,4,0">
+                        <TextBlock Text="Nga" Style="{StaticResource FieldLabel}"/>
+                        <DatePicker SelectedDate="{Binding DateFrom}"/>
+                    </StackPanel>
+                    <StackPanel Margin="0,0,4,0">
+                        <TextBlock Text="Deri" Style="{StaticResource FieldLabel}"/>
+                        <DatePicker SelectedDate="{Binding DateTo}"/>
+                    </StackPanel>
+                    <Button Content="Kërko" Command="{Binding RefreshCommand}" Style="{StaticResource PrimaryButton}" VerticalAlignment="Bottom" Margin="0,0,0,8"/>
+                    <TextBlock Text="{Binding Summary}" VerticalAlignment="Bottom" Margin="16,0,0,14" Foreground="{StaticResource MutedBrush}"/>
+                </StackPanel>
+            </DockPanel>
+        </Border>
+
+        <DataGrid ItemsSource="{Binding Items}" SelectedItem="{Binding Selected}" IsReadOnly="True">
+            <DataGrid.RowStyle>
+                <Style TargetType="DataGridRow" BasedOn="{StaticResource {x:Type DataGridRow}}">
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding Anulluar}" Value="True">
+                            <Setter Property="Foreground" Value="{StaticResource MutedBrush}"/>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </DataGrid.RowStyle>
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Nr" Binding="{Binding Nr}" Width="80"/>
+                <DataGridTextColumn Header="Data" Binding="{Binding Data, StringFormat='dd.MM.yyyy HH:mm'}" Width="150"/>
+                <DataGridTextColumn Header="Përdoruesi" Binding="{Binding User}" Width="160"/>
+                <DataGridTextColumn Header="Klienti" Binding="{Binding Klient}" Width="*"/>
+                <DataGridTextColumn Header="Totali" Binding="{Binding Total, StringFormat=N2}" Width="110"/>
+                <DataGridTextColumn Header="Paguar" Binding="{Binding Paguar, StringFormat=N2}" Width="110"/>
+                <DataGridTextColumn Header="Statusi" Binding="{Binding Statusi}" Width="110"/>
+            </DataGrid.Columns>
+        </DataGrid>
+    </DockPanel>
+</UserControl>

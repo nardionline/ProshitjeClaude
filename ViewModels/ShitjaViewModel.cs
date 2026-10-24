@@ -8,6 +8,7 @@ using CommunityToolkit.Mvvm.Input;
 using MarketPrenga.Data;
 using MarketPrenga.Models;
 using MarketPrenga.Services;
+using MarketPrenga.Views;
 
 namespace MarketPrenga.ViewModels;
 
@@ -18,7 +19,8 @@ public partial class ShitjaViewModel : ObservableObject
     readonly AppSettings _settings = new SettingsRepo().Load();
 
     public ObservableCollection<SaleLine> Lines { get; } = new();
-    public ObservableCollection<Artikull> SearchResults { get; } = new();
+    public ObservableCollection<Artikull> Tiles { get; } = new();
+    public List<Kategori> Kategorite { get; } = new();
     public List<Klient> Klientet { get; }
     public string[] Rishitesit { get; } = { "Klient", "R1", "R2", "R3" };
 
@@ -26,17 +28,28 @@ public partial class ShitjaViewModel : ObservableObject
 
     [ObservableProperty] private string _barcodeInput = "";
     [ObservableProperty] private string _searchText = "";
+    [ObservableProperty] private Kategori? _selectedKategori;
     [ObservableProperty] private string _selectedRishites = "Klient";
     [ObservableProperty] private decimal _skonto;
     [ObservableProperty] private Klient? _selectedKlient;
     [ObservableProperty] private string _paguarText = "";
-    [ObservableProperty] private string _status = "Gati. Skano barkodin.";
-    [ObservableProperty] private Artikull? _selectedSearch;
-    [ObservableProperty] private SaleLine? _selectedLine;
+    [ObservableProperty] private string _status = "Gati. Skano barkodin ose zgjidh një artikull.";
 
     public decimal Total => Lines.Sum(l => l.Total);
     public int LineCount => Lines.Count;
-    public bool ShowDebtInfo => _settings.LejonDebi;
+    public int HeldCount => HeldStore.Items.Count;
+
+    public string KusuriText
+    {
+        get
+        {
+            if (string.IsNullOrWhiteSpace(PaguarText) || !TryParsePaid(out var p)) return "";
+            var t = Total;
+            if (p > t) return $"Kusuri: {p - t:N2}";
+            if (p < t) return $"Mbetet: {t - p:N2}";
+            return "";
+        }
+    }
 
     public ShitjaViewModel()
     {
@@ -44,31 +57,48 @@ public partial class ShitjaViewModel : ObservableObject
         try { Klientet.AddRange(new KlientRepo().Search(null)); } catch { }
         _selectedKlient = Klientet[0];
 
+        Kategorite.Add(new Kategori { Id = 0, Emri = "Të gjitha" });
+        try { Kategorite.AddRange(new KategoriRepo().All()); } catch { }
+        _selectedKategori = Kategorite[0];
+
         Lines.CollectionChanged += OnLinesChanged;
+        RefreshTiles();
+    }
+
+    void NotifyTotals()
+    {
+        OnPropertyChanged(nameof(Total));
+        OnPropertyChanged(nameof(LineCount));
+        OnPropertyChanged(nameof(KusuriText));
     }
 
     void OnLinesChanged(object? s, NotifyCollectionChangedEventArgs e)
     {
         if (e.NewItems != null) foreach (SaleLine l in e.NewItems) l.PropertyChanged += OnLineChanged;
         if (e.OldItems != null) foreach (SaleLine l in e.OldItems) l.PropertyChanged -= OnLineChanged;
-        OnPropertyChanged(nameof(Total));
-        OnPropertyChanged(nameof(LineCount));
+        NotifyTotals();
     }
 
-    void OnLineChanged(object? s, PropertyChangedEventArgs e) => OnPropertyChanged(nameof(Total));
+    void OnLineChanged(object? s, PropertyChangedEventArgs e) => NotifyTotals();
+
+    partial void OnPaguarTextChanged(string value) => OnPropertyChanged(nameof(KusuriText));
 
     partial void OnSelectedKlientChanged(Klient? value)
     {
-        // si në Access: shkalla e rishitësit e klientit vendoset automatikisht
         if (value != null && value.Id != 0 && Rishitesit.Contains(value.Rishites))
             SelectedRishites = value.Rishites;
     }
 
-    partial void OnSearchTextChanged(string value)
+    partial void OnSelectedKategoriChanged(Kategori? value) => RefreshTiles();
+    partial void OnSearchTextChanged(string value) => RefreshTiles();
+
+    void RefreshTiles()
     {
-        SearchResults.Clear();
-        if (value.Trim().Length < 2) return;
-        try { foreach (var a in _art.Search(value, 50)) SearchResults.Add(a); }
+        try
+        {
+            Tiles.Clear();
+            foreach (var a in _art.Browse(SelectedKategori?.Id ?? 0, SearchText, 60)) Tiles.Add(a);
+        }
         catch (Exception ex) { Status = ex.Message; }
     }
 
@@ -95,10 +125,17 @@ public partial class ShitjaViewModel : ObservableObject
             Firma = a.Firma, Vendi = a.Vendi, Njesia = a.Njesia, CmimiHyrjes = a.CmimiHyrjes, IdCat = a.IdCat,
             Koditvsh = a.Koditvsh, Qty = qty, Price = price
         });
-        Status = $"{a.Emri}  x{qty:0.###}  @ {price:0.00}";
+        Status = $"{a.Emri}  ×{qty:0.###}  @ {price:0.00}";
         FocusBarcodeRequested?.Invoke();
     }
 
+    bool TryParsePaid(out decimal value)
+    {
+        var txt = (PaguarText ?? "").Trim().Replace(',', '.');
+        return decimal.TryParse(txt, NumberStyles.Number, CultureInfo.InvariantCulture, out value);
+    }
+
+    // ---------- komandat ----------
     [RelayCommand]
     void Scan()
     {
@@ -109,14 +146,12 @@ public partial class ShitjaViewModel : ObservableObject
         decimal qty = 1;
         var lookup = code;
 
-        // barkod peshe: 99 + kodi(5) + kg(2) + gram(3)   (si bcode_AfterUpdate në Access)
+        // barkod peshe: 99 + kodi(5) + kg(2) + gram(3)
         if (code.StartsWith("99") && code.Length >= 12)
         {
             lookup = code.Substring(2, 5);
-            var kg = code.Substring(7, 2);
-            var gr = code.Substring(9, 3);
-            if (!decimal.TryParse($"{kg}.{gr}", NumberStyles.Number, CultureInfo.InvariantCulture, out qty))
-                qty = 1;
+            if (!decimal.TryParse($"{code.Substring(7, 2)}.{code.Substring(9, 3)}", NumberStyles.Number,
+                    CultureInfo.InvariantCulture, out qty)) qty = 1;
         }
 
         Artikull? a;
@@ -133,18 +168,23 @@ public partial class ShitjaViewModel : ObservableObject
         AddArticle(a, qty);
     }
 
-    [RelayCommand]
-    void AddSearched()
-    {
-        if (SelectedSearch == null) return;
-        AddArticle(SelectedSearch, 1);
-    }
+    [RelayCommand] void AddTile(Artikull? a) { if (a != null) AddArticle(a, 1); }
+
+    [RelayCommand] void Inc(SaleLine? l) { if (l != null) l.Qty += 1; }
 
     [RelayCommand]
-    void RemoveLine()
+    void Dec(SaleLine? l)
     {
-        if (SelectedLine != null) Lines.Remove(SelectedLine);
-        FocusBarcodeRequested?.Invoke();
+        if (l == null) return;
+        if (l.Qty - 1 <= 0) Lines.Remove(l); else l.Qty -= 1;
+    }
+
+    [RelayCommand] void RemoveLine(SaleLine? l) { if (l != null) Lines.Remove(l); FocusBarcodeRequested?.Invoke(); }
+
+    [RelayCommand]
+    void QuickPay(string? amount)
+    {
+        PaguarText = amount == "exact" || string.IsNullOrEmpty(amount) ? Total.ToString("0.##", CultureInfo.InvariantCulture) : amount;
     }
 
     [RelayCommand]
@@ -155,8 +195,47 @@ public partial class ShitjaViewModel : ObservableObject
         Skonto = 0;
         SelectedKlient = Klientet[0];
         SelectedRishites = "Klient";
-        Status = "Gati. Skano barkodin.";
+        Status = "Gati. Skano barkodin ose zgjidh një artikull.";
         FocusBarcodeRequested?.Invoke();
+    }
+
+    [RelayCommand]
+    void Hold()
+    {
+        if (Lines.Count == 0) return;
+        var h = new HeldSale
+        {
+            Time = DateTime.Now, KlientId = SelectedKlient?.Id ?? 0, Rishites = SelectedRishites, Skonto = Skonto,
+            Label = SelectedKlient is { Id: > 0 } ? SelectedKlient.Emri : ""
+        };
+        h.Lines.AddRange(Lines);
+        HeldStore.Add(h);
+        Clear();
+        OnPropertyChanged(nameof(HeldCount));
+        Status = "Shporta u vendos në pritje.";
+    }
+
+    [RelayCommand]
+    void Recall()
+    {
+        if (Lines.Count > 0)
+        {
+            MessageBox.Show("Shporta aktuale nuk është bosh. Vendose në pritje ose pastroje fillimisht.",
+                "Kujdes", MessageBoxButton.OK, MessageBoxImage.Information);
+            return;
+        }
+        var w = new HeldWindow { Owner = Application.Current.MainWindow };
+        var ok = w.ShowDialog() == true;
+        OnPropertyChanged(nameof(HeldCount));
+        if (!ok || w.Chosen is not { } h) return;
+
+        foreach (var l in h.Lines) Lines.Add(l);
+        SelectedKlient = Klientet.FirstOrDefault(k => k.Id == h.KlientId) ?? Klientet[0];
+        SelectedRishites = h.Rishites;
+        Skonto = h.Skonto;
+        HeldStore.Remove(h);
+        OnPropertyChanged(nameof(HeldCount));
+        Status = "Shporta u rikthye.";
     }
 
     [RelayCommand] void PrintFiscal() => Save(true);
@@ -173,14 +252,10 @@ public partial class ShitjaViewModel : ObservableObject
 
         var total = Total;
         decimal paguar = total;
-        if (!string.IsNullOrWhiteSpace(PaguarText))
+        if (!string.IsNullOrWhiteSpace(PaguarText) && !TryParsePaid(out paguar))
         {
-            var txt = PaguarText.Trim().Replace(',', '.');
-            if (!decimal.TryParse(txt, NumberStyles.Number, CultureInfo.InvariantCulture, out paguar))
-            {
-                MessageBox.Show("Shuma e paguar nuk është e vlefshme.", "Gabim", MessageBoxButton.OK, MessageBoxImage.Warning);
-                return;
-            }
+            MessageBox.Show("Shuma e paguar nuk është e vlefshme.", "Gabim", MessageBoxButton.OK, MessageBoxImage.Warning);
+            return;
         }
 
         var klient = SelectedKlient is { Id: > 0 } ? SelectedKlient : null;
@@ -200,7 +275,7 @@ public partial class ShitjaViewModel : ObservableObject
 
         try
         {
-            var (id, nr) = _fat.SaveSale(sale, _settings.LejonDebi);
+            var (_, nr) = _fat.SaveSale(sale, _settings.LejonDebi);
 
             if (fiscal)
             {
@@ -212,9 +287,10 @@ public partial class ShitjaViewModel : ObservableObject
                 }
             }
 
-            var kusur = paguar > total ? $"   Kusuri: {paguar - total:0.00}" : "";
+            var kusur = paguar > total ? $"   ·   Kusuri: {paguar - total:N2}" : "";
             Clear();
-            Status = $"Fatura Nr {nr} u ruajt. Total: {total:0.00}{kusur}";
+            Status = $"✔ Fatura Nr {nr} u ruajt. Total: {total:N2}{kusur}";
+            RefreshTiles();   // stoku i përditësuar
         }
         catch (Exception ex)
         {

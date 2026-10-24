@@ -62,6 +62,21 @@ public class ArtikujRepo
         return dt.Rows.Cast<DataRow>().Take(max).Select(Map).ToList();
     }
 
+    public List<Artikull> Browse(int categoryId, string? text, int max = 60)
+    {
+        var where = new List<string>();
+        var ps = new List<object?>();
+        if (categoryId > 0) { where.Add("idcat = ?"); ps.Add(categoryId); }
+        if (!string.IsNullOrWhiteSpace(text))
+        {
+            var like = "%" + text.Trim() + "%";
+            where.Add("(Artikulli LIKE ? OR Barcodi LIKE ? OR Kodi LIKE ?)");
+            ps.Add(like); ps.Add(like); ps.Add(like);
+        }
+        var sql = Sel + (where.Count > 0 ? " WHERE " + string.Join(" AND ", where) : "") + " ORDER BY Artikulli";
+        return Db.Table(sql, ps.ToArray()).Rows.Cast<DataRow>().Take(max).Select(Map).ToList();
+    }
+
     public Artikull? ByBarcode(string barcode)
     {
         var dt = Db.Table(Sel + " WHERE Barcodi = ?", barcode);

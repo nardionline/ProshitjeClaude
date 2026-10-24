@@ -2,31 +2,86 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="clr-namespace:MarketPrenga.ViewModels"
-        Title="Market Prenga" Width="1280" Height="760"
+        Style="{StaticResource AppWindow}"
+        Title="Market Prenga" Width="1366" Height="768"
         WindowStartupLocation="CenterScreen" WindowState="Maximized">
     <Window.DataContext>
         <vm:MainViewModel/>
     </Window.DataContext>
     <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="190"/>
+            <ColumnDefinition Width="220"/>
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
 
-        <Border Background="#1F2A44" Padding="10">
-            <DockPanel>
+        <Border Background="{StaticResource SidebarBrush}" Padding="12,16">
+            <DockPanel LastChildFill="False">
                 <StackPanel DockPanel.Dock="Top">
-                    <TextBlock Text="Market Prenga" Foreground="White" FontSize="20" FontWeight="Bold" Margin="4,6,4,2"/>
-                    <TextBlock Text="{Binding UserLabel}" Foreground="#AAB4CC" FontSize="12" Margin="4,0,4,16"/>
-                    <Button Content="Shitja" Command="{Binding ShowShitjaCommand}"/>
-                    <Button Content="Artikuj" Command="{Binding ShowArtikujCommand}"
-                            Visibility="{Binding IsAdmin, Converter={StaticResource BoolToVis}}"/>
-                    <Button Content="Klientë" Command="{Binding ShowKlientetCommand}"
-                            Visibility="{Binding IsAdmin, Converter={StaticResource BoolToVis}}"/>
+                    <TextBlock Text="🛒 Market Prenga" Foreground="White" FontSize="20" FontWeight="Bold" Margin="6,2,6,2"/>
+                    <TextBlock Text="{Binding UserLabel}" Foreground="#94A3B8" FontSize="12" Margin="8,0,6,20"/>
+
+                    <RadioButton Style="{StaticResource NavButton}" Command="{Binding NavigateCommand}" CommandParameter="dashboard"
+                                 IsChecked="{Binding IsDashboard, Mode=OneWay}"
+                                 Visibility="{Binding IsAdmin, Converter={StaticResource BoolToVis}}">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="📊" FontFamily="Segoe UI Emoji" Width="30" FontSize="16"/>
+                            <TextBlock Text="Pasqyra" FontSize="15"/>
+                        </StackPanel>
+                    </RadioButton>
+                    <RadioButton Style="{StaticResource NavButton}" Command="{Binding NavigateCommand}" CommandParameter="shitja"
+                                 IsChecked="{Binding IsShitja, Mode=OneWay}">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="🛒" FontFamily="Segoe UI Emoji" Width="30" FontSize="16"/>
+                            <TextBlock Text="Shitja" FontSize="15"/>
+                        </StackPanel>
+                    </RadioButton>
+                    <RadioButton Style="{StaticResource NavButton}" Command="{Binding NavigateCommand}" CommandParameter="faturat"
+                                 IsChecked="{Binding IsFaturat, Mode=OneWay}"
+                                 Visibility="{Binding IsAdmin, Converter={StaticResource BoolToVis}}">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="🧾" FontFamily="Segoe UI Emoji" Width="30" FontSize="16"/>
+                            <TextBlock Text="Faturat" FontSize="15"/>
+                        </StackPanel>
+                    </RadioButton>
+                    <RadioButton Style="{StaticResource NavButton}" Command="{Binding NavigateCommand}" CommandParameter="artikuj"
+                                 IsChecked="{Binding IsArtikuj, Mode=OneWay}"
+                                 Visibility="{Binding IsAdmin, Converter={StaticResource BoolToVis}}">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="📦" FontFamily="Segoe UI Emoji" Width="30" FontSize="16"/>
+                            <TextBlock Text="Artikuj" FontSize="15"/>
+                        </StackPanel>
+                    </RadioButton>
+                    <RadioButton Style="{StaticResource NavButton}" Command="{Binding NavigateCommand}" CommandParameter="klientet"
+                                 IsChecked="{Binding IsKlientet, Mode=OneWay}"
+                                 Visibility="{Binding IsAdmin, Converter={StaticResource BoolToVis}}">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="👥" FontFamily="Segoe UI Emoji" Width="30" FontSize="16"/>
+                            <TextBlock Text="Klientë" FontSize="15"/>
+                        </StackPanel>
+                    </RadioButton>
+                    <RadioButton Style="{StaticResource NavButton}" Command="{Binding NavigateCommand}" CommandParameter="furnitoret"
+                                 IsChecked="{Binding IsFurnitoret, Mode=OneWay}"
+                                 Visibility="{Binding IsAdmin, Converter={StaticResource BoolToVis}}">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="🚚" FontFamily="Segoe UI Emoji" Width="30" FontSize="16"/>
+                            <TextBlock Text="Furnitorë" FontSize="15"/>
+                        </StackPanel>
+                    </RadioButton>
+                    <RadioButton Style="{StaticResource NavButton}" Command="{Binding NavigateCommand}" CommandParameter="raporte"
+                                 IsChecked="{Binding IsRaporte, Mode=OneWay}"
+                                 Visibility="{Binding IsAdmin, Converter={StaticResource BoolToVis}}">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="📈" FontFamily="Segoe UI Emoji" Width="30" FontSize="16"/>
+                            <TextBlock Text="Raporte" FontSize="15"/>
+                        </StackPanel>
+                    </RadioButton>
                 </StackPanel>
+
+                <Button DockPanel.Dock="Bottom" Content="Dil nga programi" Command="{Binding ExitCommand}"
+                        Background="#1F2937" Foreground="#E2E8F0" BorderBrush="#1F2937"/>
             </DockPanel>
         </Border>
 
-        <ContentControl Grid.Column="1" Content="{Binding Current}" Margin="12"/>
+        <ContentControl Grid.Column="1" Content="{Binding Current}" Margin="20"/>
     </Grid>
 </Window>
